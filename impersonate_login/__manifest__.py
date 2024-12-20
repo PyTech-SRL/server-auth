@@ -18,12 +18,12 @@
         "mail",
     ],
     "data": [
+        "security/group.xml",
+        "security/ir.model.access.csv",
         "views/assets.xml",
         "views/res_users.xml",
         "views/impersonate_log.xml",
         "views/res_config_settings.xml",
-        "security/group.xml",
-        "security/ir.model.access.csv",
     ],
     "qweb": [
         "static/src/xml/user_menu.xml",
