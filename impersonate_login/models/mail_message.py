@@ -3,12 +3,14 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 from odoo import _, api, fields, models
+from odoo.exceptions import AccessError
 from odoo.http import request
 from odoo.tools import html_escape
 
 
 class Message(models.Model):
     _inherit = "mail.message"
+    # _inherit = ["mail.message", "impersonate.mixin"]
 
     impersonated_author_id = fields.Many2one(
         comodel_name="res.partner",
@@ -77,3 +79,23 @@ class Message(models.Model):
                     rec.body = f"{start_with}{rec.body}"
             else:
                 rec.body = rec.body
+
+    def read(self, fields=None, load='_classic_read'):
+        if (
+            request
+            and request.session.impersonate_from_uid
+        ):
+            try:
+                res = super().read(fields, load)
+            except AccessError:
+                new_self = self.with_user(
+                    request.session.impersonate_from_uid
+                ).with_context(is_impersonated=True)
+                try:
+                    res = super(Message, new_self).read()
+                except AccessError as inner_err:
+                    import wdb; wdb.set_trace()
+                    raise inner_err
+        else:
+            res = super().read(fields, load)
+        return res
